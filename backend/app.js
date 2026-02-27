@@ -22,7 +22,8 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 
-// CSRF protection: for cookie-based requests, verify Origin matches the allowed frontend
+// CSRF protection: for cookie-based requests, verify Origin/Referer matches the allowed frontend.
+// SameSite=strict is the primary CSRF defence; this header check is an additional layer.
 app.use((req, res, next) => {
   const mutatingMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
   if (!mutatingMethods.includes(req.method)) return next();
@@ -33,7 +34,9 @@ app.use((req, res, next) => {
   const origin = req.headers.origin || req.headers.referer;
   const allowed = process.env.FRONTEND_URL || 'http://localhost:3000';
 
-  if (!origin || !origin.startsWith(allowed)) {
+  // If no Origin/Referer header is present, the SameSite=strict cookie attribute
+  // provides the primary CSRF protection, so we allow the request through.
+  if (origin && !origin.startsWith(allowed)) {
     return res.status(403).json({ message: 'Forbidden: invalid request origin' });
   }
   next();

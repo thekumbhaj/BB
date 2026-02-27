@@ -165,7 +165,8 @@ const forgotPassword = async (req, res) => {
 
     const resetToken = crypto.randomBytes(32).toString('hex');
     user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = Date.now() + 60 * 60 * 1000; // 1 hour
+    const RESET_TOKEN_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
+    user.resetPasswordExpires = Date.now() + RESET_TOKEN_EXPIRY_MS;
     await user.save();
 
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
